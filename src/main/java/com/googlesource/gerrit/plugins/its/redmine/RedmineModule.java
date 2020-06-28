@@ -29,30 +29,28 @@ import org.slf4j.LoggerFactory;
 
 public class RedmineModule extends AbstractModule {
 
-  private static final Logger log = LoggerFactory.getLogger(RedmineModule.class);
+	private static final Logger log = LoggerFactory.getLogger(RedmineModule.class);
 
-  private final String pluginName;
-  private final Config gerritConfig;
-  private final PluginConfigFactory pluginCfgFactory;
+	private final String pluginName;
+	private final Config gerritConfig;
+	private final PluginConfigFactory pluginCfgFactory;
 
-  @Inject
-  public RedmineModule(
-      @PluginName final String pluginName,
-      @GerritServerConfig final Config config,
-      PluginConfigFactory pluginCfgFactory) {
-    this.pluginName = pluginName;
-    this.gerritConfig = config;
-    this.pluginCfgFactory = pluginCfgFactory;
-  }
+	@Inject
+	public RedmineModule(@PluginName final String pluginName, @GerritServerConfig final Config config,
+			PluginConfigFactory pluginCfgFactory) {
+		this.pluginName = pluginName;
+		this.gerritConfig = config;
+		this.pluginCfgFactory = pluginCfgFactory;
+	}
 
-  @Override
-  protected void configure() {
-    if (gerritConfig.getString(pluginName, null, "url") != null) {
-      log.info("Redmine is configured as ITS");
-      bind(ItsFacade.class).toInstance(new RedmineItsFacade(pluginName, gerritConfig));
-      bind(ItsFacadeFactory.class).to(SingleItsServer.class);
+	@Override
+	protected void configure() {
+		if (gerritConfig.getString(pluginName, null, "url") != null) {
+			log.info("Redmine is configured as ITS");
+			bind(ItsFacade.class).toInstance(new RedmineItsFacade(pluginName, gerritConfig));
+			bind(ItsFacadeFactory.class).to(SingleItsServer.class);
 
-      install(new ItsHookModule(pluginName, pluginCfgFactory));
-    }
-  }
+			install(new ItsHookModule(pluginName, pluginCfgFactory));
+		}
+	}
 }

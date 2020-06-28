@@ -29,77 +29,71 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 
 /** Initialize the GitRepositoryManager configuration section. */
 @Singleton
+@SuppressWarnings("unused")
 class InitRedmine extends InitIts {
-  private final String pluginName;
-  private final Section.Factory sections;
-  private final InitFlags flags;
-  private Section redmine;
-  private Section redmineComment;
-  private String redmineUrl;
-  private String redmineUsername;
-  private String redmineApiKey;
+	private final String pluginName;
+	private final Section.Factory sections;
+	private final InitFlags flags;
+	private Section redmine;
+	private Section redmineComment;
+	private String redmineUrl;
+	private String redmineUsername;
+	private String redmineApiKey;
 
-  @Inject
-  InitRedmine(
-      @PluginName String pluginName,
-      ConsoleUI ui,
-      Section.Factory sections,
-      AllProjectsConfig allProjectsConfig,
-      AllProjectsNameOnInitProvider allProjects,
-      InitFlags flags) {
-    super(pluginName, "Redmine", ui, allProjectsConfig, allProjects);
-    this.pluginName = pluginName;
-    this.sections = sections;
-    this.flags = flags;
-  }
+	@Inject
+	InitRedmine(@PluginName String pluginName, ConsoleUI ui, Section.Factory sections,
+			AllProjectsConfig allProjectsConfig, AllProjectsNameOnInitProvider allProjects, InitFlags flags) {
+		super(pluginName, "Redmine", ui, allProjectsConfig, allProjects);
+		this.pluginName = pluginName;
+		this.sections = sections;
+		this.flags = flags;
+	}
 
-  @Override
-  public void run() throws IOException, ConfigInvalidException {
-    super.run();
+	@Override
+	public void run() throws IOException, ConfigInvalidException {
+		super.run();
 
-    ui.message("\n");
-    ui.header("Redmine connectivity");
+		ui.message("\n");
+		ui.header("Redmine connectivity");
 
-    init();
-  }
+		init();
+	}
 
-  private void init() {
-    this.redmine = sections.get(pluginName, null);
-    this.redmineComment = sections.get(COMMENT_LINK_SECTION, pluginName);
+	private void init() {
+		this.redmine = sections.get(pluginName, null);
+		this.redmineComment = sections.get(COMMENT_LINK_SECTION, pluginName);
 
-    do {
-      enterRedmineConnectivity();
-    } while (redmineUrl != null
-        && (isConnectivityRequested(redmineUrl) && !isRedmineConnectSuccessful()));
+		do {
+			enterRedmineConnectivity();
+		} while (redmineUrl != null && (isConnectivityRequested(redmineUrl) && !isRedmineConnectSuccessful()));
 
-    if (redmineUrl == null) {
-      return;
-    }
+		if (redmineUrl == null) {
+			return;
+		}
 
-    ui.header("Redmine issue-tracking association");
-    redmineComment.string("Redmine issue number regex", "match", "#([1-9][0-9]*)");
-    redmineComment.set("html", String.format("<a href=\"%s/issues/$1\">#$1</a>", redmineUrl));
-    redmineComment.select(
-        "Issue number enforced in commit message", "association", ItsAssociationPolicy.SUGGESTED);
-  }
+		ui.header("Redmine issue-tracking association");
+		redmineComment.string("Redmine issue number regex", "match", "#([1-9][0-9]*)");
+		redmineComment.set("html", String.format("<a href=\"%s/issues/$1\">#$1</a>", redmineUrl));
+		redmineComment.select("Issue number enforced in commit message", "association", ItsAssociationPolicy.SUGGESTED);
+	}
 
-  public void enterRedmineConnectivity() {
-    redmineUrl = redmine.string("Redmine URL (empty to skip)", "url", null);
-    if (redmineUrl != null) {
-      redmineApiKey = redmine.string("Redmine api_key", "apiKey", "");
-    }
-  }
+	public void enterRedmineConnectivity() {
+		redmineUrl = redmine.string("Redmine URL (empty to skip)", "url", null);
+		if (redmineUrl != null) {
+			redmineApiKey = redmine.string("Redmine api_key", "apiKey", "");
+		}
+	}
 
-  private boolean isRedmineConnectSuccessful() {
-    ui.message("Checking Redmine connectivity ... ");
-    try {
-      RedmineClient client = new RedmineClient(redmineUrl, redmineApiKey);
-      client.isRedmineConnectSuccessful();
-      ui.message("[OK]\n");
-      return true;
-    } catch (Exception e) {
-      ui.message("*FAILED* (%s)\n", e.toString());
-      return false;
-    }
-  }
+	private boolean isRedmineConnectSuccessful() {
+		ui.message("Checking Redmine connectivity ... ");
+		try {
+			RedmineClient client = new RedmineClient(redmineUrl, redmineApiKey);
+			client.isRedmineConnectSuccessful();
+			ui.message("[OK]\n");
+			return true;
+		} catch (Exception e) {
+			ui.message("*FAILED* (%s)\n", e.toString());
+			return false;
+		}
+	}
 }
